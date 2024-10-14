@@ -9,6 +9,8 @@ pub const Window = struct {
     f: c.fenster,
     w: u32,
     h: u32,
+    debug: bool = true,
+    fps: u32 = 60,
     pub fn init(allocator: Allocator, w: u32, h: u32) !Window {
         var buf = try allocator.alloc(u32, w * h);
         const f = std.mem.zeroInit(c.fenster, .{
