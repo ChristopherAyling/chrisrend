@@ -1,5 +1,5 @@
 const std = @import("std");
-const window = @import("window.zig");
+const Window = @import("window.zig").Window;
 const storage = @import("storage.zig");
 const stl = @import("stl.zig");
 
@@ -20,4 +20,12 @@ pub fn main() !void {
     const mesh = storage.Mesh.init(0, 12);
     tribuf.insert(mesh, stl_tris);
     tribuf.buffer[0].print();
+
+    var window = try Window.init(allocator, 1024, 1024);
+    defer window.deinit();
+
+    window.before_loop();
+    while (window.loop()) {
+        window.set_pixel(50, 100, 0xff0000);
+    }
 }
