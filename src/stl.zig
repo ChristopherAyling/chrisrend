@@ -11,7 +11,7 @@ fn f32_from_bytes(b: *[4]u8) f32 {
 }
 
 fn v3_from_stl_bytes(bytes: []u8) storage.V3 {
-    const scale = 300;
+    const scale = 1;
     return storage.V3{
         .x = f32_from_bytes(bytes[0..4]) * scale, //fmt
         .y = f32_from_bytes(bytes[4..8]) * scale,

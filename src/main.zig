@@ -21,9 +21,19 @@ pub fn main() !void {
     const cube_tris = try stl.load_stl(allocator, "cube.stl");
     defer allocator.free(cube_tris);
 
-    const cube_mesh = storage.Mesh.init(0, 12);
+    var cube_mesh = storage.Mesh.init(0, 12);
+    cube_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
+    cube_mesh.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
+    cube_mesh.transform.rotation = storage.V3.ones();
+
+    var cube_mesh2 = storage.Mesh.init(0, 12);
+    cube_mesh2.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
+    cube_mesh2.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
+    cube_mesh2.transform.rotation = storage.V3{ .x = 1, .y = 0.5, .z = -0.1 };
+
     tribuf.insert(cube_mesh, cube_tris);
     meshbuf.insert(cube_mesh);
+    meshbuf.insert(cube_mesh2);
 
     var window = try Window.init(allocator, 1024, 1024);
     defer window.deinit();
@@ -31,6 +41,7 @@ pub fn main() !void {
     window.before_loop();
     while (window.loop()) {
         window.set_pixel(50, 100, 0xff0000);
+        draw.clear(&window, 0xf0a0bb);
         draw.draw_orthographic(&window, tribuf, meshbuf);
     }
 }

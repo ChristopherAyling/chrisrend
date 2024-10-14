@@ -60,12 +60,14 @@ pub const TriangleBuffer = struct {
 
 pub const Transform = struct {
     position: V3,
-    rotation: Quat,
+    // rotation: Quat,
+    rotation: V3,
     scale: V3,
     pub fn identity() Transform {
         return Transform{
             .position = V3.zeros(),
-            .rotation = Quat.identity(),
+            // .rotation = Quat.identity(),
+            .rotation = V3.zeros(),
             .scale = V3.ones(),
         };
     }
