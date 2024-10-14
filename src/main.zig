@@ -24,12 +24,12 @@ pub fn main() !void {
     var cube_mesh = storage.Mesh.init(0, 12);
     cube_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
     cube_mesh.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
-    cube_mesh.transform.rotation = storage.V3.ones();
+    // cube_mesh.transform.rotation = storage.V3.ones();
 
     var cube_mesh2 = storage.Mesh.init(0, 12);
     cube_mesh2.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
     cube_mesh2.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
-    cube_mesh2.transform.rotation = storage.V3{ .x = 1, .y = 0.5, .z = -0.1 };
+    // cube_mesh2.transform.rotation = storage.V3{ .x = 1, .y = 0.5, .z = -0.1 };
 
     tribuf.insert(cube_mesh, cube_tris);
     meshbuf.insert(cube_mesh);
@@ -42,6 +42,7 @@ pub fn main() !void {
     while (window.loop()) {
         window.set_pixel(50, 100, 0xff0000);
         draw.clear(&window, 0xf0a0bb);
+        meshbuf.buffer[1].transform.rotation.x += 0.01;
         draw.draw_orthographic(&window, tribuf, meshbuf);
     }
 }

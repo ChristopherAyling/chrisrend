@@ -31,8 +31,8 @@ fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle)
 
 fn transform_triangle(triangle: *storage.Triangle, transform: storage.Transform) void {
     scale_triangle(triangle, transform.scale);
-    translate_triangle(triangle, transform.position);
     rotate_triangle(triangle, transform.rotation);
+    translate_triangle(triangle, transform.position);
 }
 
 fn translate_triangle(triangle: *storage.Triangle, t: storage.V3) void {
