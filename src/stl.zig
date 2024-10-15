@@ -19,11 +19,17 @@ fn v3_from_stl_bytes(bytes: []u8) storage.V3 {
     };
 }
 
-fn triangle_from_stl_bytes(bytes: []u8) storage.Triangle {
-    return storage.Triangle{ .normal = v3_from_stl_bytes(bytes[0..12]), .p0 = v3_from_stl_bytes(bytes[12..24]), .p1 = v3_from_stl_bytes(bytes[24..36]), .p2 = v3_from_stl_bytes(bytes[36..48]), .color = 0xff0000 };
+fn triangle_from_stl_bytes(bytes: []u8, color: u32) storage.Triangle {
+    return storage.Triangle{
+        .normal = v3_from_stl_bytes(bytes[0..12]), //.
+        .p0 = v3_from_stl_bytes(bytes[12..24]),
+        .p1 = v3_from_stl_bytes(bytes[24..36]),
+        .p2 = v3_from_stl_bytes(bytes[36..48]),
+        .color = color,
+    };
 }
 
-pub fn load_stl(allocator: Allocator, path: []const u8) ![]storage.Triangle {
+pub fn load_stl(allocator: Allocator, path: []const u8, color: u32) ![]storage.Triangle {
     const file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
     const reader = file.reader();
@@ -35,7 +41,7 @@ pub fn load_stl(allocator: Allocator, path: []const u8) ![]storage.Triangle {
 
     var triangles = try allocator.alloc(storage.Triangle, n_triangles);
     for (0..triangles.len) |i| {
-        triangles[i] = triangle_from_stl_bytes(data[tridx .. tridx + 48]);
+        triangles[i] = triangle_from_stl_bytes(data[tridx .. tridx + 48], color);
         tridx += 50;
     }
     return triangles;

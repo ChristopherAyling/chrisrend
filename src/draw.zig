@@ -26,6 +26,7 @@ fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle)
         std.log.debug("after", .{});
         triangle_render.p1.print();
         draw_triangle(window, triangle_render);
+        fill_triangle(window, triangle_render);
     }
 }
 
@@ -93,6 +94,74 @@ fn draw_triangle(window: *Window, tri: storage.Triangle) void {
     draw_line(window, @intFromFloat(tri.p0.x), @intFromFloat(tri.p0.y), @intFromFloat(tri.p1.x), @intFromFloat(tri.p1.y), tri.color);
     draw_line(window, @intFromFloat(tri.p1.x), @intFromFloat(tri.p1.y), @intFromFloat(tri.p2.x), @intFromFloat(tri.p2.y), tri.color);
     draw_line(window, @intFromFloat(tri.p2.x), @intFromFloat(tri.p2.y), @intFromFloat(tri.p0.x), @intFromFloat(tri.p0.y), tri.color);
+}
+
+pub fn fill_triangle_flat_top(window: *Window, tri: storage.Triangle) void {
+    const invslope1 = (tri.p2.x - tri.p1.x) / (tri.p2.y - tri.p1.y); // slope between p2 and p1
+    const invslope2 = (tri.p2.x - tri.p0.x) / (tri.p2.y - tri.p0.y); // slope between p2 and p0
+
+    var curx1 = tri.p2.x;
+    var curx2 = tri.p2.x;
+
+    var y = tri.p2.y;
+    while (y >= tri.p1.y) {
+        draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color);
+        curx1 -= invslope1;
+        curx2 -= invslope2;
+        y -= 1;
+    }
+}
+
+fn fill_triangle_flat_bottom(window: *Window, tri: storage.Triangle) void {
+    const invslope1 = (tri.p2.x - tri.p1.x) / (tri.p2.y - tri.p1.y); // slope between p2 and p1
+    const invslope2 = (tri.p2.x - tri.p0.x) / (tri.p2.y - tri.p0.y); // slope between p2 and p0
+
+    var curx1 = tri.p2.x;
+    var curx2 = tri.p2.x;
+
+    var y = tri.p2.y;
+    while (y <= tri.p0.y) {
+        draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color);
+        curx1 += invslope1;
+        curx2 += invslope2;
+        y += 1;
+    }
+}
+
+fn triangle_y_compare(context: void, a: storage.V3, b: storage.V3) bool {
+    _ = context;
+    return a.y < b.y;
+}
+
+// pub fn triangle_compare(thing: void, a: Triangle, b: Triangle) bool {
+//     _ = thing;
+//     // return a.p0.y > b.p0.y;
+//     return (a.p0.z + a.p1.z + a.p2.z) / 3 > (b.p0.z + b.p1.z + b.p2.z) / 3;
+//     // return a.p0.z > b.p0.z and a.p1.z > b.p1.z and a.p2.z > b.p2.z;
+// }
+
+fn sort_triangle_y(tri: storage.Triangle) storage.Triangle {
+    var sorted = [3]storage.V3{ tri.p0, tri.p1, tri.p2 };
+    std.mem.sort(storage.V3, &sorted, {}, triangle_y_compare);
+    return storage.Triangle{ .p0 = sorted[0], .p1 = sorted[1], .p2 = sorted[2], .color = tri.color, .normal = tri.normal };
+}
+
+pub fn fill_triangle(window: *Window, tri: storage.Triangle) void {
+    const tri_sorted = sort_triangle_y(tri);
+    const bot = tri_sorted.p2;
+    const mid = tri_sorted.p1;
+    const top = tri_sorted.p0;
+    const slope = (bot.x - top.x) / (bot.y - top.y);
+    const t = storage.V3{
+        .x = top.x + slope * (mid.y - top.y), // Correct interpolation based on slope
+        .y = mid.y, // Same y as mid
+        .z = undefined,
+    };
+
+    const flat_bottom = storage.Triangle{ .p0 = mid, .p1 = t, .p2 = top, .color = tri.color, .normal = tri.normal };
+    const flat_top = storage.Triangle{ .p0 = t, .p1 = mid, .p2 = bot, .color = tri.color, .normal = tri.normal };
+    fill_triangle_flat_bottom(window, flat_bottom);
+    fill_triangle_flat_top(window, flat_top);
 }
 
 fn draw_line(window: *Window, x0: i32, y0: i32, x1: i32, y1: i32, color: u32) void {

@@ -31,7 +31,7 @@ pub const Triangle = struct {
     p0: V3, //fmt
     p1: V3,
     p2: V3,
-    normal: V3 = undefined,
+    normal: V3,
     color: u32,
     pub fn print(self: Triangle) void {
         self.normal.print();
