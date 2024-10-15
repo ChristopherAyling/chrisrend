@@ -35,6 +35,7 @@ pub const Window = struct {
     }
 
     pub fn set_pixel(self: *Window, x: u32, y: u32, color: u32) void {
+        if (x >= self.w or y >= self.h) return;
         self.f.buf[y * self.w + x] = color;
     }
 };
