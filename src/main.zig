@@ -16,68 +16,70 @@ pub fn main() !void {
     defer allocator.free(tris);
     var tribuf = storage.TriangleBuffer.init(tris);
 
+    const render_tris = try allocator.alloc(storage.Triangle, 1_000_000);
+    defer allocator.free(render_tris);
+    var render_tribuf = storage.TriangleBuffer.init(render_tris);
+
     const meshes = try allocator.alloc(storage.Mesh, 10);
     var meshbuf = storage.MeshBuffer.init(meshes);
 
-    const cube_tris = try stl.load_stl(allocator, "cube.stl", 0xff0000);
-    defer allocator.free(cube_tris);
+    {
+        const torus_tris = try stl.load_stl(allocator, "torus.stl", 0x0000ff);
+        defer allocator.free(torus_tris);
+        var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
+        torus_mesh.transform.position = storage.V3{ .x = 200, .y = 200, .z = -100 };
+        torus_mesh.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
+        tribuf.insert(torus_mesh, torus_tris);
+        meshbuf.insert(torus_mesh);
+    }
 
-    var cube_mesh = storage.Mesh.init(0, 12);
-    cube_mesh.transform.position = storage.V3{ .x = 400, .y = 500, .z = 0 };
-    cube_mesh.transform.scale = storage.V3{ .x = 200, .y = 200, .z = 200 };
+    {
+        const torus_tris = try stl.load_stl(allocator, "bunny.stl", 0x0000ff);
+        defer allocator.free(torus_tris);
+        var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
+        torus_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
+        torus_mesh.transform.scale = storage.V3{ .x = 3, .y = 3, .z = 3 };
+        tribuf.insert(torus_mesh, torus_tris);
+        meshbuf.insert(torus_mesh);
+    }
 
-    var cube_mesh2 = storage.Mesh.init(0, 12);
-    cube_mesh2.transform.position = storage.V3{ .x = 800, .y = 500, .z = 0 };
-    cube_mesh2.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
-    cube_mesh2.transform.rotation = storage.V3{ .x = 1, .y = 0.5, .z = -0.1 };
-    tribuf.insert(cube_mesh, cube_tris);
-    meshbuf.insert(cube_mesh);
-    meshbuf.insert(cube_mesh2);
-
-    const text_tris = try text.mesh_from_text(allocator, "text", 0x102ff0, 20);
-    var text_mesh = storage.Mesh.init(tribuf.size, tribuf.size + text_tris.len);
-    text_mesh.transform.position = storage.V3{ .x = 200, .y = 900, .z = 0 };
-    tribuf.insert(text_mesh, text_tris);
-    meshbuf.insert(text_mesh);
-
-    const bunny_tris = try stl.load_stl(allocator, "bunny.stl", 0x0ff00);
-    defer allocator.free(bunny_tris);
-    var bunny_mesh = storage.Mesh.init(tribuf.size, tribuf.size + bunny_tris.len);
-    bunny_mesh.transform.position = storage.V3{ .x = 300, .y = 200, .z = 0 };
-    bunny_mesh.transform.scale = storage.V3{ .x = 4, .y = 4, .z = 4 };
-    tribuf.insert(bunny_mesh, bunny_tris);
-    meshbuf.insert(bunny_mesh);
-
-    const torus_tris = try stl.load_stl(allocator, "torus.stl", 0x0000ff);
-    defer allocator.free(torus_tris);
-    var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
-    torus_mesh.transform.position = storage.V3{ .x = 800, .y = 800, .z = 0 };
-    torus_mesh.transform.scale = storage.V3{ .x = 100, .y = 100, .z = 100 };
-    tribuf.insert(torus_mesh, torus_tris);
-    meshbuf.insert(torus_mesh);
+    // {
+    //     const torus_tris = try stl.load_stl(allocator, "bunny.stl", 0x0000ff);
+    //     defer allocator.free(torus_tris);
+    //     var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
+    //     torus_mesh.transform.position = storage.V3{ .x = 200, .y = 200, .z = 0 };
+    //     torus_mesh.transform.scale = storage.V3{ .x = 300, .y = 300, .z = 300 };
+    //     tribuf.insert(torus_mesh, torus_tris);
+    //     meshbuf.insert(torus_mesh);
+    // }
 
     var window = try Window.init(allocator, 1024, 1024);
     defer window.deinit();
+
+    std.log.debug("triangles: {}", .{tribuf.size});
 
     window.before_loop();
     while (window.loop()) {
         window.set_pixel(50, 100, 0xff0000);
         draw.clear(&window, 0xf0a0bb);
-        meshbuf.buffer[3].transform.rotation.x += 0.005;
-        meshbuf.buffer[3].transform.rotation.y += 0.005;
-        meshbuf.buffer[3].transform.rotation.z += 0.005;
+        // meshbuf.buffer[3].transform.rotation.x += 0.005;
+        // meshbuf.buffer[3].transform.rotation.y += 0.005;
+        // meshbuf.buffer[3].transform.rotation.z += 0.005;
 
-        meshbuf.buffer[0].transform.rotation.x += 0.005;
-        meshbuf.buffer[0].transform.rotation.y -= 0.01;
-        meshbuf.buffer[0].transform.rotation.z += 0.005;
+        meshbuf.buffer[0].transform.rotation.y += 0.005;
+        meshbuf.buffer[1].transform.rotation.y += 0.005;
+        meshbuf.buffer[1].transform.rotation.x += 0.005;
+        // meshbuf.buffer[0].transform.rotation.y -= 0.01;
+        // meshbuf.buffer[0].transform.rotation.z += 0.005;
 
         // meshbuf.buffer[2].transform.rotation.x += 0.005;
-        meshbuf.buffer[2].transform.rotation.y += 0.005;
+        // meshbuf.buffer[2].transform.rotation.y += 0.005;
         // meshbuf.buffer[2].transform.rotation.z += 0.005;
 
-        meshbuf.buffer[4].transform.rotation.y += 0.05;
-        meshbuf.buffer[4].transform.rotation.x += 0.05;
+        // meshbuf.buffer[4].transform.rotation.y += 0.01;
+        // meshbuf.buffer[4].transform.rotation.x += 0.01;
 
-        draw.draw_orthographic(&window, tribuf, meshbuf);
+        @memcpy(render_tribuf.buffer, tribuf.buffer);
+        draw.draw_orthographic(&window, &render_tribuf, meshbuf);
     }
 }

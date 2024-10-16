@@ -8,7 +8,7 @@ pub fn clear(window: *Window, color: u32) void {
     }
 }
 
-pub fn draw_orthographic(window: *Window, tribuf: storage.TriangleBuffer, meshbuf: storage.MeshBuffer) void {
+pub fn draw_orthographic(window: *Window, tribuf: *storage.TriangleBuffer, meshbuf: storage.MeshBuffer) void {
     for (0..meshbuf.size) |i| {
         const mesh = meshbuf.buffer[i];
         const triangles = tribuf.buffer[mesh.start..mesh.end];
@@ -16,19 +16,29 @@ pub fn draw_orthographic(window: *Window, tribuf: storage.TriangleBuffer, meshbu
     }
 }
 
+pub fn triangle_compare(thing: void, a: storage.Triangle, b: storage.Triangle) bool {
+    _ = thing;
+    // return a.p0.z > b.p0.z;
+    return (a.p0.z + a.p1.z + a.p2.z) / 3 > (b.p0.z + b.p1.z + b.p2.z) / 3;
+    // return a.p0.z > b.p0.z and a.p1.z > b.p1.z and a.p2.z > b.p2.z;
+}
+
 fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle) void {
-    std.mem.sort(storage.Triangle, triangles, {}, triangle_compare);
+    // transform
     for (0..triangles.len) |i| {
-        const triangle = triangles[i];
-        var triangle_render = triangle;
-        triangle_render.color = normal_to_rgb(triangle_render.normal);
-        std.log.debug("before", .{});
-        triangle_render.p0.print();
-        transform_triangle(&triangle_render, mesh.transform);
-        std.log.debug("after", .{});
-        triangle_render.p1.print();
-        draw_triangle(window, triangle_render);
-        fill_triangle(window, triangle_render);
+        transform_triangle(&triangles[i], mesh.transform);
+    }
+
+    // sort
+    std.mem.sort(storage.Triangle, triangles, {}, triangle_compare);
+
+    // draw
+    for (0..triangles.len) |i| {
+        var triangle = triangles[i];
+        triangle.color = normal_to_rgb(triangle.normal);
+        fill_triangle(window, triangle);
+        // triangle.color = 0xffffff;
+        // draw_triangle(window, triangle);
     }
 }
 
@@ -133,13 +143,6 @@ fn fill_triangle_flat_bottom(window: *Window, tri: storage.Triangle) void {
 fn triangle_y_compare(context: void, a: storage.V3, b: storage.V3) bool {
     _ = context;
     return a.y < b.y;
-}
-
-pub fn triangle_compare(thing: void, a: storage.Triangle, b: storage.Triangle) bool {
-    _ = thing;
-    // return a.p0.y > b.p0.y;
-    return (a.p0.z + a.p1.z + a.p2.z) / 3 > (b.p0.z + b.p1.z + b.p2.z) / 3;
-    // return a.p0.z > b.p0.z and a.p1.z > b.p1.z and a.p2.z > b.p2.z;
 }
 
 fn sort_triangle_y(tri: storage.Triangle) storage.Triangle {

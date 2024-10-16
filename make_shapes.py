@@ -9,3 +9,7 @@ torus_mesh = trimesh.creation.torus(major_radius=major_radius, minor_radius=mino
 
 # Show the mesh
 torus_mesh.export('torus.stl')
+
+# cylinder
+cylinder_mesh = trimesh.creation.cylinder(radius=3, height=2.0)
+cylinder_mesh.export('cylinder.stl')
