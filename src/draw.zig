@@ -173,7 +173,7 @@ fn fill_triangle_flat_bottom(window: *Window, tri: storage.Triangle) void {
     var curx2 = tri.p2.x;
 
     var y = tri.p2.y;
-    while (y <= tri.p0.y) {
+    while (y <= (tri.p0.y)) {
         draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color);
         curx1 += invslope1;
         curx2 += invslope2;
@@ -204,8 +204,20 @@ pub fn fill_triangle(window: *Window, tri: storage.Triangle) void {
         .z = undefined,
     };
 
-    const flat_bottom = storage.Triangle{ .p0 = mid, .p1 = t, .p2 = top, .color = tri.color, .normal = tri.normal };
-    const flat_top = storage.Triangle{ .p0 = t, .p1 = mid, .p2 = bot, .color = tri.color, .normal = tri.normal };
+    const flat_bottom = storage.Triangle{
+        .p0 = mid, //.
+        .p1 = t,
+        .p2 = top,
+        .color = tri.color,
+        .normal = tri.normal,
+    };
+    const flat_top = storage.Triangle{
+        .p0 = t, //.
+        .p1 = mid,
+        .p2 = bot,
+        .color = tri.color,
+        .normal = tri.normal,
+    };
     fill_triangle_flat_bottom(window, flat_bottom);
     fill_triangle_flat_top(window, flat_top);
 }

@@ -33,8 +33,11 @@ pub fn load_stl(allocator: Allocator, path: []const u8, color: u32) ![]storage.T
     const file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
     const reader = file.reader();
-    var buf: [4000960]u8 = undefined;
-    const size = try reader.readAll(&buf);
+    // var buf: [4000960]u8 = undefined;
+    var buf = try allocator.alloc(u8, 100_000_000);
+    defer allocator.free(buf);
+
+    const size = try reader.readAll(buf);
     const data = buf[0..size];
     const n_triangles = u32_from_bytes(buf[80..84]);
     var tridx: usize = 84;

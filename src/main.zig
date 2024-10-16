@@ -12,11 +12,11 @@ pub fn main() !void {
         _ = gpa.deinit();
     }
 
-    const tris = try allocator.alloc(storage.Triangle, 1_000_000);
+    const tris = try allocator.alloc(storage.Triangle, 10_000_000);
     defer allocator.free(tris);
     var tribuf = storage.TriangleBuffer.init(tris);
 
-    const render_tris = try allocator.alloc(storage.Triangle, 1_000_000);
+    const render_tris = try allocator.alloc(storage.Triangle, 10_000_000);
     defer allocator.free(render_tris);
     var render_tribuf = storage.TriangleBuffer.init(render_tris);
 
@@ -61,6 +61,7 @@ pub fn main() !void {
 
     window.before_loop();
     while (window.loop()) {
+        std.log.debug("frame", .{});
         window.set_pixel(50, 100, 0xff0000);
         draw.clear(&window, 0xf0a0bb);
 
