@@ -17,9 +17,11 @@ pub fn draw_orthographic(window: *Window, tribuf: storage.TriangleBuffer, meshbu
 }
 
 fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle) void {
+    std.mem.sort(storage.Triangle, triangles, {}, triangle_compare);
     for (0..triangles.len) |i| {
         const triangle = triangles[i];
         var triangle_render = triangle;
+        triangle_render.color = normal_to_rgb(triangle_render.normal);
         std.log.debug("before", .{});
         triangle_render.p0.print();
         transform_triangle(&triangle_render, mesh.transform);
@@ -133,12 +135,12 @@ fn triangle_y_compare(context: void, a: storage.V3, b: storage.V3) bool {
     return a.y < b.y;
 }
 
-// pub fn triangle_compare(thing: void, a: Triangle, b: Triangle) bool {
-//     _ = thing;
-//     // return a.p0.y > b.p0.y;
-//     return (a.p0.z + a.p1.z + a.p2.z) / 3 > (b.p0.z + b.p1.z + b.p2.z) / 3;
-//     // return a.p0.z > b.p0.z and a.p1.z > b.p1.z and a.p2.z > b.p2.z;
-// }
+pub fn triangle_compare(thing: void, a: storage.Triangle, b: storage.Triangle) bool {
+    _ = thing;
+    // return a.p0.y > b.p0.y;
+    return (a.p0.z + a.p1.z + a.p2.z) / 3 > (b.p0.z + b.p1.z + b.p2.z) / 3;
+    // return a.p0.z > b.p0.z and a.p1.z > b.p1.z and a.p2.z > b.p2.z;
+}
 
 fn sort_triangle_y(tri: storage.Triangle) storage.Triangle {
     var sorted = [3]storage.V3{ tri.p0, tri.p1, tri.p2 };
@@ -261,4 +263,31 @@ pub fn rotate_y(triangle: *storage.Triangle, theta: f32) void {
     const z2 = p2.z;
     p2.x = x2 * cos_theta + z2 * sin_theta;
     p2.z = z2 * cos_theta - x2 * sin_theta;
+}
+
+fn clamp(n: f32, min: f32, max: f32) f32 {
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+}
+
+fn normal_to_rgb(normal: storage.V3) u32 {
+    var nx = normal.x;
+    var ny = normal.y;
+    var nz = normal.z;
+
+    nx = (nx + 1) * 0.5;
+    ny = (ny + 1) * 0.5;
+    nz = (nz + 1) * 0.5;
+
+    nx = clamp(nx, 0.0, 1.0);
+    ny = clamp(ny, 0.0, 1.0);
+    nz = clamp(nz, 0.0, 1.0);
+
+    const r: u32 = @intFromFloat(nx * 255);
+    const g: u32 = @intFromFloat(ny * 255);
+    const b: u32 = @intFromFloat(nz * 255);
+
+    const color: u32 = (r << 16) | (g << 8) | b;
+    return color;
 }
