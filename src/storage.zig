@@ -14,6 +14,9 @@ pub const V3 = struct {
     x: f32,
     y: f32,
     z: f32,
+    pub fn init(x: f32, y: f32, z: f32) V3 {
+        return V3{ .x = x, .y = y, .z = z };
+    }
     pub fn zeros() V3 {
         return V3{ .x = 0, .y = 0, .z = 0 };
     }
@@ -45,6 +48,22 @@ pub const V3 = struct {
     pub fn div(self: V3, other: V3) V3 {
         return V3{ .x = self.x / other.x, .y = self.y / other.y, .z = self.z / other.z };
     }
+
+    pub fn sub(self: V3, other: V3) V3 {
+        return V3{ .x = self.x - other.x, .y = self.y - other.y, .z = self.z - other.z };
+    }
+
+    pub fn cross(self: V3, other: V3) V3 {
+        return V3{ .x = self.y * other.z - self.z * other.y, .y = self.z * other.x - self.x * other.z, .z = self.x * other.y - self.y * other.x };
+    }
+
+    pub fn normalize(self: V3) V3 {
+        return self.div(V3.somes(self.length()));
+    }
+
+    pub fn length(self: V3) f32 {
+        return @sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
+    }
 };
 
 pub const Triangle = struct {
@@ -59,6 +78,13 @@ pub const Triangle = struct {
         self.p1.print();
         self.p2.print();
         std.log.debug("color {}", .{self.color});
+    }
+
+    pub fn calc_normal(self: Triangle) V3 {
+        const v1 = self.p1.sub(self.p0);
+        const v2 = self.p2.sub(self.p0);
+        const cross = v1.cross(v2);
+        return cross.normalize();
     }
 };
 

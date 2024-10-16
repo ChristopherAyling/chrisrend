@@ -30,7 +30,7 @@ fn color_v3_to_rgb(color_v3: storage.V3) u32 {
     return (r << 16) | (g << 8) | b;
 }
 
-pub fn apply_lighting(color_u32: u32) u32 {
+pub fn apply_lighting(color_u32: u32, normal: storage.V3) u32 {
     // blinn phong reflection model
     const V3 = storage.V3;
     const red: u8 = @intCast((color_u32 >> 16) & 0xFF);
@@ -44,14 +44,21 @@ pub fn apply_lighting(color_u32: u32) u32 {
     };
     const model_color = model_color_255.div(V3.somes(255));
 
-    // const lighting = V3{ .x = 0.5, .y = 0, .z = 0 };
-    const lighting = V3.somes(1);
+    const light_color = V3.ones();
+    const light_source = V3.init(0.5, 0, 0);
+    const diffuse_strength = @max(0, normal.dot(light_source));
+    const diffuse = V3.somes(diffuse_strength).mul(light_color);
+
+    const ambient = V3.somes(0.5);
+    // const diffuse = V3.somes(0);
+    const specular = V3.somes(0);
+
+    const lighting = ambient.add(diffuse).add(specular);
+    // var lighting = V3{ .x = 0, .y = 0, .z = 0 };
+    // lighting = lighting.add(ambient);
 
     const color = model_color.mul(lighting);
-    // todo turn color into u32
     const rgbu32 = color_v3_to_rgb(color);
-    color.print();
-    std.log.debug("color {b}", .{rgbu32});
     return rgbu32;
 }
 
@@ -68,8 +75,8 @@ fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle)
     for (0..triangles.len) |i| {
         var triangle = triangles[i];
         // triangle.color = normal_to_rgb(triangle.normal);
-        triangle.color = 0x00ff00;
-        triangle.color = apply_lighting(triangle.color);
+        // triangle.color = 0x00ff00;
+        triangle.color = apply_lighting(triangle.color, triangle.calc_normal());
         fill_triangle(window, triangle);
         // triangle.color = 0xffffff;
         // draw_triangle(window, triangle);
