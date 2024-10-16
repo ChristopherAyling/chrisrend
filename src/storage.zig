@@ -22,8 +22,28 @@ pub const V3 = struct {
         return V3{ .x = 1, .y = 1, .z = 1 };
     }
 
+    pub fn somes(n: f32) V3 {
+        return V3{ .x = n, .y = n, .z = n };
+    }
+
     pub fn print(self: V3) void {
         std.log.debug("V3: {d} {d} {d}", .{ self.x, self.y, self.z });
+    }
+
+    pub fn add(self: V3, other: V3) V3 {
+        return V3{ .x = self.x + other.x, .y = self.y + other.y, .z = self.z + other.z };
+    }
+
+    pub fn mul(self: V3, other: V3) V3 {
+        return V3{ .x = self.x * other.x, .y = self.y * other.y, .z = self.z * other.z };
+    }
+
+    pub fn dot(self: V3, other: V3) f32 {
+        return self.x * other.x + self.y * other.y + self.z * other.z;
+    }
+
+    pub fn div(self: V3, other: V3) V3 {
+        return V3{ .x = self.x / other.x, .y = self.y / other.y, .z = self.z / other.z };
     }
 };
 

@@ -33,15 +33,15 @@ pub fn main() !void {
         meshbuf.insert(torus_mesh);
     }
 
-    {
-        const torus_tris = try stl.load_stl(allocator, "bunny.stl", 0x0000ff);
-        defer allocator.free(torus_tris);
-        var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
-        torus_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
-        torus_mesh.transform.scale = storage.V3{ .x = 3, .y = 3, .z = 3 };
-        tribuf.insert(torus_mesh, torus_tris);
-        meshbuf.insert(torus_mesh);
-    }
+    // {
+    //     const torus_tris = try stl.load_stl(allocator, "bunny.stl", 0x0000ff);
+    //     defer allocator.free(torus_tris);
+    //     var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
+    //     torus_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
+    //     torus_mesh.transform.scale = storage.V3{ .x = 3, .y = 3, .z = 3 };
+    //     tribuf.insert(torus_mesh, torus_tris);
+    //     meshbuf.insert(torus_mesh);
+    // }
 
     // {
     //     const torus_tris = try stl.load_stl(allocator, "bunny.stl", 0x0000ff);

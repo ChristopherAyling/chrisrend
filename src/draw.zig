@@ -23,6 +23,38 @@ pub fn triangle_compare(thing: void, a: storage.Triangle, b: storage.Triangle) b
     // return a.p0.z > b.p0.z and a.p1.z > b.p1.z and a.p2.z > b.p2.z;
 }
 
+fn color_v3_to_rgb(color_v3: storage.V3) u32 {
+    const r: u32 = @intFromFloat(color_v3.x * 255);
+    const g: u32 = @intFromFloat(color_v3.y * 255);
+    const b: u32 = @intFromFloat(color_v3.z * 255);
+    return (r << 16) | (g << 8) | b;
+}
+
+pub fn apply_lighting(color_u32: u32) u32 {
+    // blinn phong reflection model
+    const V3 = storage.V3;
+    const red: u8 = @intCast((color_u32 >> 16) & 0xFF);
+    const green: u8 = @intCast((color_u32 >> 8) & 0xFF);
+    const blue: u8 = @intCast(color_u32 & 0xFF);
+
+    const model_color_255 = V3{
+        .x = @floatFromInt(red),
+        .y = @floatFromInt(green),
+        .z = @floatFromInt(blue),
+    };
+    const model_color = model_color_255.div(V3.somes(255));
+
+    // const lighting = V3{ .x = 0.5, .y = 0, .z = 0 };
+    const lighting = V3.somes(1);
+
+    const color = model_color.mul(lighting);
+    // todo turn color into u32
+    const rgbu32 = color_v3_to_rgb(color);
+    color.print();
+    std.log.debug("color {b}", .{rgbu32});
+    return rgbu32;
+}
+
 fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle) void {
     // transform
     for (0..triangles.len) |i| {
@@ -35,7 +67,9 @@ fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle)
     // draw
     for (0..triangles.len) |i| {
         var triangle = triangles[i];
-        triangle.color = normal_to_rgb(triangle.normal);
+        // triangle.color = normal_to_rgb(triangle.normal);
+        triangle.color = 0x00ff00;
+        triangle.color = apply_lighting(triangle.color);
         fill_triangle(window, triangle);
         // triangle.color = 0xffffff;
         // draw_triangle(window, triangle);
