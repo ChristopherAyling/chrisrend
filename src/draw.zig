@@ -72,7 +72,7 @@ pub fn apply_lighting(color_u32: u32, normal: storage.V3) u32 {
 fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle) void {
     // transform
     for (0..triangles.len) |i| {
-        transform_triangle(&triangles[i], mesh.transform);
+        transform_triangle(window, &triangles[i], mesh.transform);
     }
 
     // sort
@@ -85,15 +85,31 @@ fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle)
         // triangle.color = 0x00ff00;
         triangle.color = apply_lighting(triangle.color, triangle.calc_normal());
         fill_triangle(window, triangle);
-        // triangle.color = 0xffffff;
-        // draw_triangle(window, triangle);
+        triangle.color = 0xffffff;
+        draw_triangle(window, triangle);
     }
 }
 
-fn transform_triangle(triangle: *storage.Triangle, transform: storage.Transform) void {
+fn transform_triangle(window: *Window, triangle: *storage.Triangle, transform: storage.Transform) void {
     scale_triangle(triangle, transform.scale);
     rotate_triangle(triangle, transform.rotation);
     translate_triangle(triangle, transform.position);
+    const perspective = storage.Mat4x4.perspective(55, @floatFromInt(window.h / window.w), 0.01, 1000);
+    perspective_triangle(triangle, perspective);
+}
+
+fn perspective_triangle(triangle: *storage.Triangle, perspective: storage.Mat4x4) void {
+    const p0 = triangle.p0;
+    const p1 = triangle.p1;
+    const p2 = triangle.p2;
+
+    const p0_4 = storage.mul_mat_vec(perspective, p0);
+    const p1_4 = storage.mul_mat_vec(perspective, p1);
+    const p2_4 = storage.mul_mat_vec(perspective, p2);
+
+    triangle.p0 = p0_4;
+    triangle.p1 = p1_4;
+    triangle.p2 = p2_4;
 }
 
 fn translate_triangle(triangle: *storage.Triangle, t: storage.V3) void {

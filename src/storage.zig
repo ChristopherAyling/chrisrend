@@ -10,6 +10,60 @@ pub const Quat = struct {
     }
 };
 
+pub const Mat4x4 = struct {
+    data: [4][4]f32,
+
+    pub fn set(self: *Mat4x4, i: u32, j: u32, value: f32) void {
+        self.data[i][j] = value;
+    }
+
+    pub fn get(self: Mat4x4, i: u32, j: u32) f32 {
+        return self.data[i][j];
+    }
+
+    pub fn zeroes() Mat4x4 {
+        return std.mem.zeroInit(Mat4x4, .{});
+    }
+
+    pub fn identity() Mat4x4 {
+        return Mat4x4{ .data = .{
+            .{ 1, 0, 0, 0 },
+            .{ 0, 1, 0, 0 },
+            .{ 0, 0, 1, 0 },
+            .{ 0, 0, 0, 1 },
+        } };
+    }
+
+    pub fn print(self: Mat4x4) void {
+        for (0..4) |i| {
+            std.log.debug("{any}", .{self.data[i]});
+        }
+    }
+
+    pub fn perspective(fovy_in_degrees: f32, aspect_ratio: f32, z_near: f32, z_far: f32) Mat4x4 {
+        var result = Mat4x4.identity();
+
+        const f = 1 / @tan(std.math.degreesToRadians(fovy_in_degrees) * 0.5);
+
+        result.data[0][0] = f / aspect_ratio;
+        result.data[1][1] = f;
+        result.data[2][2] = (z_near + z_far) / (z_near - z_far);
+        result.data[2][3] = -1;
+        result.data[3][2] = 2 * z_far * z_near / (z_near - z_far);
+        result.data[3][3] = 0;
+
+        return result;
+    }
+};
+
+pub fn mul_mat_vec(mat: Mat4x4, vec: V3) V3 {
+    return V3.init(
+        mat.get(0, 0) * vec.x + mat.get(0, 1) * vec.y + mat.get(0, 2) * vec.z + mat.get(0, 3) * 1,
+        mat.get(1, 0) * vec.x + mat.get(1, 1) * vec.y + mat.get(1, 2) * vec.z + mat.get(1, 3) * 1,
+        mat.get(2, 0) * vec.x + mat.get(2, 1) * vec.y + mat.get(2, 2) * vec.z + mat.get(2, 3) * 1,
+    );
+}
+
 pub const V3 = struct {
     x: f32,
     y: f32,
