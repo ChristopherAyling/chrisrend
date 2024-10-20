@@ -22,3 +22,5 @@ todo:
 - compiling for WASM
 - orbit controls
 - match clicks to triangles
+
+Uses https://github.com/zserge/fenster for creating a window. I love fenster.
