@@ -38,4 +38,8 @@ pub const Window = struct {
         if (x >= self.w or y >= self.h) return;
         self.f.buf[y * self.w + x] = color;
     }
+
+    pub fn key(self: Window, k: usize) bool {
+        return self.f.keys[k] != 0;
+    }
 };
