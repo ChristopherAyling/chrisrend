@@ -44,18 +44,25 @@ pub fn apply_lighting(color_u32: u32, normal: storage.V3) u32 {
     };
     const model_color = model_color_255.div(V3.somes(255));
 
-    const light_color = V3.ones();
+    const light_color = V3.init(0.5, 0.5, 0.5);
     const light_source = V3.init(0.5, 0, 0);
+
+    const ambient = V3.somes(0.5);
+
     const diffuse_strength = @max(0, normal.dot(light_source));
     const diffuse = V3.somes(diffuse_strength).mul(light_color);
 
-    const ambient = V3.somes(0.5);
-    // const diffuse = V3.somes(0);
-    const specular = V3.somes(0);
+    const camera_source = V3.init(0, 0, -1);
+    const view_source = camera_source.normalize();
+    const reflect_source = light_source.neg().reflect(normal);
+    const specular_strength = @max(0, view_source.dot(reflect_source));
+    const specular = light_color.mul(V3.somes(specular_strength));
+    // const specular = V3.somes(0);
 
+    // _ = ambient;
+    // _ = diffuse;
+    // const lighting = specular;
     const lighting = ambient.add(diffuse).add(specular);
-    // var lighting = V3{ .x = 0, .y = 0, .z = 0 };
-    // lighting = lighting.add(ambient);
 
     const color = model_color.mul(lighting);
     const rgbu32 = color_v3_to_rgb(color);

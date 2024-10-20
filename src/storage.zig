@@ -53,6 +53,10 @@ pub const V3 = struct {
         return V3{ .x = self.x - other.x, .y = self.y - other.y, .z = self.z - other.z };
     }
 
+    pub fn neg(self: V3) V3 {
+        return V3{ .x = -self.x, .y = -self.y, .z = -self.z };
+    }
+
     pub fn cross(self: V3, other: V3) V3 {
         return V3{ .x = self.y * other.z - self.z * other.y, .y = self.z * other.x - self.x * other.z, .z = self.x * other.y - self.y * other.x };
     }
@@ -63,6 +67,14 @@ pub const V3 = struct {
 
     pub fn length(self: V3) f32 {
         return @sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
+    }
+
+    pub fn reflect(self: V3, normal: V3) V3 {
+        // I - 2*dot(N,I)*N
+        const dotp = V3.somes(self.dot(normal));
+        const dot_2 = dotp.mul(V3.somes(2));
+        const dot_2_n = dot_2.mul(normal);
+        return self.sub(dot_2_n);
     }
 };
 

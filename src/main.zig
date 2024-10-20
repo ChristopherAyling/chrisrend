@@ -47,7 +47,7 @@ pub fn main() !void {
         const torus_tris = try stl.load_stl(allocator, "SWRat.stl", 0xffA500);
         defer allocator.free(torus_tris);
         var torus_mesh = storage.Mesh.init(tribuf.size, tribuf.size + torus_tris.len);
-        torus_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 0 };
+        torus_mesh.transform.position = storage.V3{ .x = 500, .y = 500, .z = 200 };
         torus_mesh.transform.scale = storage.V3{ .x = 500, .y = 500, .z = 500 };
         torus_mesh.transform.rotation.x = std.math.degreesToRadians(90);
         tribuf.insert(torus_mesh, torus_tris);
