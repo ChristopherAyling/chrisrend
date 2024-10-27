@@ -99,6 +99,18 @@ pub const Triangle = struct {
         const cross = v1.cross(v2);
         return cross.normalize();
     }
+
+    pub fn move_along_vector(self: Triangle, vector: V3, distance: f32) Triangle {
+        const offset = vector.normalize().mul(V3.somes(distance));
+        return Triangle{
+            .p0 = self.p0.add(offset),
+            .p1 = self.p1.add(offset),
+            .p2 = self.p2.add(offset),
+            .normal = self.normal,
+            .color = self.color,
+            .id = self.id,
+        };
+    }
 };
 
 pub const TriangleBuffer = struct {
