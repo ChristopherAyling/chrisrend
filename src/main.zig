@@ -57,6 +57,10 @@ pub fn main() !void {
         meshbuf.insert(torus_mesh);
     }
 
+    for (0..tribuf.size) |i| {
+        tribuf.buffer[i].id = @intCast(i);
+    }
+
     var window = try Window.init(allocator, 1024, 1024);
     defer window.deinit();
 
@@ -87,7 +91,6 @@ pub fn main() !void {
         if (window.key(RIGHT)) {
             command = Command.right;
         }
-        std.log.debug("{any}", .{command});
         const movement_magnitude = 10;
         const camera_location_delta: storage.V3 = switch (command) {
             .none => storage.V3.zeros(),
@@ -108,6 +111,19 @@ pub fn main() !void {
         meshbuf.buffer[2].transform.rotation.y += 0.005;
 
         @memcpy(render_tribuf.buffer, tribuf.buffer);
+        render_tribuf.size = tribuf.size;
+
+        const mouse_x = window.f.x;
+        const mouse_y: i32 = window.f.y;
+
+        std.log.debug("mouse_x: {d}, mouse_y: {d}", .{ mouse_x, mouse_y });
+        if (mouse_x > 0 and mouse_y > 0 and mouse_x < window.w and mouse_y < window.h) {
+            const triangle_id = window.get_triangle_id(@intCast(mouse_x), @intCast(mouse_y));
+            std.log.debug("triangle_id {d} and render_tribuf.size {d}", .{ triangle_id, render_tribuf.size });
+            if (triangle_id < render_tribuf.size) {
+                render_tribuf.buffer[triangle_id].color = 0x00ff00;
+            }
+        }
 
         draw.clear(&window, 0xf0a0bb);
         draw.draw_orthographic(&window, &render_tribuf, meshbuf);

@@ -84,6 +84,7 @@ pub const Triangle = struct {
     p2: V3,
     normal: V3,
     color: u32,
+    id: u32 = undefined,
     pub fn print(self: Triangle) void {
         self.normal.print();
         self.p0.print();

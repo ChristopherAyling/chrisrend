@@ -84,7 +84,7 @@ fn draw_mesh(window: *Window, mesh: storage.Mesh, triangles: []storage.Triangle)
         // triangle.color = normal_to_rgb(triangle.normal);
         // triangle.color = 0x00ff00;
         triangle.color = apply_lighting(triangle.color, triangle.calc_normal());
-        fill_triangle(window, triangle);
+        fill_triangle(window, triangle, triangle.id);
         // triangle.color = 0xffffff;
         // draw_triangle(window, triangle);
     }
@@ -156,7 +156,7 @@ fn draw_triangle(window: *Window, tri: storage.Triangle) void {
     draw_line(window, @intFromFloat(tri.p2.x), @intFromFloat(tri.p2.y), @intFromFloat(tri.p0.x), @intFromFloat(tri.p0.y), tri.color);
 }
 
-pub fn fill_triangle_flat_top(window: *Window, tri: storage.Triangle) void {
+pub fn fill_triangle_flat_top(window: *Window, tri: storage.Triangle, triangle_id: u32) void {
     const invslope1 = (tri.p2.x - tri.p1.x) / (tri.p2.y - tri.p1.y); // slope between p2 and p1
     const invslope2 = (tri.p2.x - tri.p0.x) / (tri.p2.y - tri.p0.y); // slope between p2 and p0
 
@@ -165,14 +165,14 @@ pub fn fill_triangle_flat_top(window: *Window, tri: storage.Triangle) void {
 
     var y = tri.p2.y;
     while (y >= tri.p1.y) {
-        draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color);
+        draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color, triangle_id);
         curx1 -= invslope1;
         curx2 -= invslope2;
         y -= 1;
     }
 }
 
-fn fill_triangle_flat_bottom(window: *Window, tri: storage.Triangle) void {
+fn fill_triangle_flat_bottom(window: *Window, tri: storage.Triangle, triangle_id: u32) void {
     const invslope1 = (tri.p2.x - tri.p1.x) / (tri.p2.y - tri.p1.y); // slope between p2 and p1
     const invslope2 = (tri.p2.x - tri.p0.x) / (tri.p2.y - tri.p0.y); // slope between p2 and p0
 
@@ -181,7 +181,7 @@ fn fill_triangle_flat_bottom(window: *Window, tri: storage.Triangle) void {
 
     var y = tri.p2.y;
     while (y <= (tri.p0.y)) {
-        draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color);
+        draw_line(window, @intFromFloat(curx1), @intFromFloat(y), @intFromFloat(curx2), @intFromFloat(y), tri.color, triangle_id);
         curx1 += invslope1;
         curx2 += invslope2;
         y += 1;
@@ -199,7 +199,7 @@ fn sort_triangle_y(tri: storage.Triangle) storage.Triangle {
     return storage.Triangle{ .p0 = sorted[0], .p1 = sorted[1], .p2 = sorted[2], .color = tri.color, .normal = tri.normal };
 }
 
-pub fn fill_triangle(window: *Window, tri: storage.Triangle) void {
+pub fn fill_triangle_old(window: *Window, tri: storage.Triangle, triangle_id: u32) void {
     const tri_sorted = sort_triangle_y(tri);
     const bot = tri_sorted.p2;
     const mid = tri_sorted.p1;
@@ -225,11 +225,50 @@ pub fn fill_triangle(window: *Window, tri: storage.Triangle) void {
         .color = tri.color,
         .normal = tri.normal,
     };
-    fill_triangle_flat_bottom(window, flat_bottom);
-    fill_triangle_flat_top(window, flat_top);
+    fill_triangle_flat_bottom(window, flat_bottom, triangle_id);
+    fill_triangle_flat_top(window, flat_top, triangle_id);
 }
 
-fn draw_line(window: *Window, x0: i32, y0: i32, x1: i32, y1: i32, color: u32) void {
+pub fn fill_triangle(window: *Window, tri: storage.Triangle, triangle_id: u32) void {
+    var min_x: i32 = @intFromFloat(@floor(@min(@min(tri.p0.x, tri.p1.x), tri.p2.x)));
+    var max_x: i32 = @intFromFloat(@ceil(@max(@max(tri.p0.x, tri.p1.x), tri.p2.x)));
+    var min_y: i32 = @intFromFloat(@floor(@min(@min(tri.p0.y, tri.p1.y), tri.p2.y)));
+    var max_y: i32 = @intFromFloat(@ceil(@max(@max(tri.p0.y, tri.p1.y), tri.p2.y)));
+
+    const window_w: i32 = @intCast(window.w);
+    const window_h: i32 = @intCast(window.h);
+
+    // Clip against screen bounds
+    min_x = @max(min_x, 0);
+    min_y = @max(min_y, 0);
+    max_x = @min(max_x, window_w - 1);
+    max_y = @min(max_y, window_h - 1);
+
+    var y: i32 = min_y;
+    while (y <= max_y) : (y += 1) {
+        var x: i32 = min_x;
+        while (x <= max_x) : (x += 1) {
+            const px = @as(f32, @floatFromInt(x)) + 0.5;
+            const py = @as(f32, @floatFromInt(y)) + 0.5;
+
+            // Calculate barycentric coordinates
+            const area = (tri.p1.y - tri.p2.y) * (tri.p0.x - tri.p2.x) +
+                (tri.p2.x - tri.p1.x) * (tri.p0.y - tri.p2.y);
+
+            const w1 = ((tri.p1.y - tri.p2.y) * (px - tri.p2.x) +
+                (tri.p2.x - tri.p1.x) * (py - tri.p2.y)) / area;
+            const w2 = ((tri.p2.y - tri.p0.y) * (px - tri.p2.x) +
+                (tri.p0.x - tri.p2.x) * (py - tri.p2.y)) / area;
+            const w3 = 1.0 - w1 - w2;
+
+            if (w1 >= 0 and w2 >= 0 and w3 >= 0) {
+                window.set_pixel(@intCast(x), @intCast(y), tri.color);
+                window.set_triangle_id(@intCast(x), @intCast(y), triangle_id);
+            }
+        }
+    }
+}
+fn draw_line(window: *Window, x0: i32, y0: i32, x1: i32, y1: i32, color: u32, triangle_id: u32) void {
     var x = x0;
     var y = y0;
     const dx: i32 = @intCast(@abs(x1 - x0));
@@ -244,6 +283,7 @@ fn draw_line(window: *Window, x0: i32, y0: i32, x1: i32, y1: i32, color: u32) vo
     while (true) {
         if ((x < window.w) and (x > 0) and (y < window.h) and (y > 0)) {
             window.set_pixel(@intCast(x), @intCast(y), color);
+            window.set_triangle_id(@intCast(x), @intCast(y), triangle_id);
         }
         if ((x == x1) and (y == y1)) break;
         const err2 = 2 * err;
